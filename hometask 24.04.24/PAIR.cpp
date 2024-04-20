@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <algorithm>
+
 
 Pair::Pair(const std::string& f, int s) : first(f), second(s) {}
 
@@ -14,16 +16,21 @@ Pair* countWordFrequency(const std::string& filename, int& size) {
     std::string word;
 
     while (file >> word) {
+        // Очистка слова от знаков пунктуации и преобразование в нижний регистр
+        std::string cleanedWord = cleanWord(word);
+
         bool found = false;
         for (int i = 0; i < size; ++i) {
-            if (wordFreq[i].first == word) {
-                wordFreq[i].second++;
-                found = true;
-                break;
+            // Сравнение очищенного слова с сохраненными
+            for (int i = 0; i < size && !found; ++i) {
+                if (wordFreq[i].first == cleanedWord) {
+                    wordFreq[i].second++;
+                    found = true;
+                }
             }
         }
         if (!found) {
-            wordFreq[size] = Pair(word, 1);
+            wordFreq[size] = Pair(cleanedWord, 1);
             size++;
         }
     }
@@ -55,4 +62,17 @@ void sortByFrequency(Pair* wordFreq, int size) {
             }
         }
     }
+}
+
+bool isPunctuation(char c) {
+    return std::ispunct(c);
+}
+
+std::string cleanWord(const std::string& word) {
+    std::string clean = word;
+    // Преобразование всех символов в нижний регистр
+    std::transform(clean.begin(), clean.end(), clean.begin(), ::tolower);
+    // Удаление знаков пунктуации
+    clean.erase(std::remove_if(clean.begin(), clean.end(), isPunctuation), clean.end());
+    return clean;
 }
